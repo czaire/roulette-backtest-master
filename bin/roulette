@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+
+import sys
+import argparse
+from os.path import dirname, realpath, join
+
+SRC_DIR = realpath(join(dirname(__file__), '..'))
+BACKTEST_DIR = realpath(join(dirname(__file__), '..', 'resources', 'backtest'))
+
+
+if __name__ == '__main__':
+    sys.path.append(SRC_DIR)
+    from app.controller import ServiceController
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('bet', action='extend', nargs='+',
+                        metavar='BET', help='betting configuration')
+    parser.add_argument('-m', '--mode', choices=('rng', 'backtest'), default='rng',
+                        metavar='MODE', help='test mode')
+    parser.add_argument('-s', '--spins', action='store', type=int, default=50,
+                        metavar='NUMBER', help='number of roulette spins played')
+    parser.add_argument('-l', '--table_limit', action='store', type=float, default=150.0,
+                        metavar='NUMBER', help='maximum sum of units the table accepts')
+    parser.add_argument('--balance', action='store', type=float, default=100.0,
+                        metavar='NUMBER', help='starting balance')
+
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    service = ServiceController()
+
+    try:
+        args = parse_args()
+        service.run_simulation(args.bet, BACKTEST_DIR, **vars(args))
+
+    except KeyboardInterrupt:
+        sys.exit('process terminated by user')
+
+    except ValueError as e:
+        sys.exit(str(e))
